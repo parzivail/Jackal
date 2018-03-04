@@ -1,7 +1,6 @@
 package com.parzivail.jackal.proxy;
 
 import com.parzivail.jackal.Resources;
-import com.parzivail.jackal.util.ShaderHelper;
 import net.minecraft.client.settings.KeyBinding;
 import net.minecraftforge.fml.client.registry.ClientRegistry;
 import net.minecraftforge.fml.relauncher.Side;
@@ -16,7 +15,6 @@ public class Client extends Common
 	@Override
 	public void init()
 	{
-		ShaderHelper.initShaders();
 	}
 
 	@Override
