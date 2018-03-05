@@ -123,7 +123,9 @@ public class EventHandler
 					{
 						Tuple<Vector3f, RayTraceResult> postuple = getArrowLandPosition(m, velocity, look, x, y, z);
 						positions.add(postuple.getFirst());
-						hits.add(postuple.getSecond().typeOfHit);
+						RayTraceResult hit = postuple.getSecond();
+						if (hit != null)
+							hits.add(hit.typeOfHit);
 					}
 
 			Enumerable<Vector3f> pos = Enumerable.from(positions);
