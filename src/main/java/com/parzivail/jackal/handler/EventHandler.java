@@ -70,30 +70,35 @@ public class EventHandler
 
 		GL11.glPolygonMode(GL11.GL_FRONT_AND_BACK, GL11.GL_FILL);
 
+		double distToEntity = e.getDistanceSq(m.player);
+
+		if (distToEntity < 200)
+		{
 		/*
 			2D info render
 		 */
-		GL.Translate(e.lastTickPosX, e.lastTickPosY, e.lastTickPosZ);
-		GL11.glRotatef(-m.getRenderManager().playerViewY, 0, 1, 0);
+			GL.Translate(e.lastTickPosX, e.lastTickPosY, e.lastTickPosZ);
+			GL11.glRotatef(-m.getRenderManager().playerViewY, 0, 1, 0);
 
-		GL11.glLineWidth(2);
+			GL11.glLineWidth(2);
 
-		GL11.glColor4f(1, 0, 0, 1);
-		Fx.D2.DrawSolidRectangle(-e.width / 2 - 0.1f, 0, 0.1f, e.height * e.getHealth() / e.getMaxHealth());
-		GL11.glColor4f(0, 0, 0, 1);
-		Fx.D2.DrawWireRectangle(-e.width / 2 - 0.1f, 0, 0.1f, e.height);
+			GL11.glColor4f(1, 0, 0, 1);
+			Fx.D2.DrawSolidRectangle(-e.width / 2 - 0.1f, 0, 0.1f, e.height * e.getHealth() / e.getMaxHealth());
+			GL11.glColor4f(0, 0, 0, 1);
+			Fx.D2.DrawWireRectangle(-e.width / 2 - 0.1f, 0, 0.1f, e.height);
 
 		/*
 			2D info text render
 		 */
-		FontRenderer fr = m.fontRenderer;
-		GL.Enable(EnableCap.Texture2D);
+			FontRenderer fr = m.fontRenderer;
+			GL.Enable(EnableCap.Texture2D);
 
-		GL11.glColor4f(1, 1, 1, 1);
-		GL.Translate(-e.width / 2 - 0.2f, e.height, 0);
-		GL.Scale(-1 / 64f);
-		fr.drawString((Math.round(e.getHealth() * 10) / 10) + "/" + (Math.round(e.getMaxHealth() * 10) / 10), 0, 0, 0xFFFFFF);
-		fr.drawString(e.getTotalArmorValue() + " armor", 0, fr.FONT_HEIGHT, 0xFFFFFF);
+			GL11.glColor4f(1, 1, 1, 1);
+			GL.Translate(-e.width / 2 - 0.2f, e.height, 0);
+			GL.Scale(-1 / 64f);
+			fr.drawString((Math.round(e.getHealth() * 10) / 10) + "/" + (Math.round(e.getMaxHealth() * 10) / 10), 0, 0, 0xFFFFFF);
+			fr.drawString(e.getTotalArmorValue() + " armor", 0, fr.FONT_HEIGHT, 0xFFFFFF);
+		}
 
 		GL.PopMatrix();
 		GL11.glColor4f(1, 1, 1, 1);
@@ -106,72 +111,73 @@ public class EventHandler
 	{
 		Minecraft m = Minecraft.getMinecraft();
 
-		if (m.player.getHeldItemMainhand().getItem() instanceof ItemBow)
-		{
-			float pull = m.player.getItemInUseMaxCount();
-			float velocity = ItemBow.getArrowVelocity((int)pull);
-			velocity *= 3;
+		if (!(m.player.getHeldItemMainhand().getItem() instanceof ItemBow))
+			return;
 
-			Vec3d look = m.player.getLook(p);
+		float pull = m.player.getItemInUseMaxCount();
+		float velocity = ItemBow.getArrowVelocity((int)pull);
+		velocity *= 3;
 
-			ArrayList<Vector3f> positions = new ArrayList<>();
-			ArrayList<RayTraceResult.Type> hits = new ArrayList<>();
+		Vec3d look = m.player.getLook(p);
 
-			for (int x = -1; x <= 1; x++)
-				for (int y = -1; y <= 1; y++)
-					for (int z = -1; z <= 1; z++)
-					{
-						Tuple<Vector3f, RayTraceResult> postuple = getArrowLandPosition(m, velocity, look, x, y, z);
-						positions.add(postuple.getFirst());
-						RayTraceResult hit = postuple.getSecond();
-						if (hit != null)
-							hits.add(hit.typeOfHit);
-					}
+		ArrayList<Vector3f> positions = new ArrayList<>();
+		ArrayList<RayTraceResult.Type> hits = new ArrayList<>();
 
-			Enumerable<Vector3f> pos = Enumerable.from(positions);
-			Enumerable<RayTraceResult.Type> hit = Enumerable.from(hits);
+		for (int x = -1; x <= 1; x++)
+			for (int y = -1; y <= 1; y++)
+				for (int z = -1; z <= 1; z++)
+				{
+					Tuple<Vector3f, RayTraceResult> postuple = getArrowLandPosition(m, velocity, look, x, y, z);
+					positions.add(postuple.getFirst());
+					RayTraceResult hit = postuple.getSecond();
+					if (hit != null)
+						hits.add(hit.typeOfHit);
+				}
 
-			float minX = pos.min(v -> v.x);
-			float minY = pos.min(v -> v.y);
-			float minZ = pos.min(v -> v.z);
+		Enumerable<Vector3f> pos = Enumerable.from(positions);
+		Enumerable<RayTraceResult.Type> hit = Enumerable.from(hits);
 
-			float maxX = pos.max(v -> v.x);
-			float maxY = pos.max(v -> v.y);
-			float maxZ = pos.max(v -> v.z);
+		float minX = pos.min(v -> v.x);
+		float minY = pos.min(v -> v.y);
+		float minZ = pos.min(v -> v.z);
 
-			double dist = Math.sqrt(Math.pow(maxX - minX, 2) + Math.pow(maxZ - minZ, 2));
+		float maxX = pos.max(v -> v.x);
+		float maxY = pos.max(v -> v.y);
+		float maxZ = pos.max(v -> v.z);
 
-			GL11.glPushAttrib(GL11.GL_ENABLE_BIT);
-			GL11.glPushAttrib(GL11.GL_LINE_BIT);
+		double dist = Math.sqrt(Math.pow(maxX - minX, 2) + Math.pow(maxZ - minZ, 2));
 
-			GL.PushMatrix();
-			GL.Disable(EnableCap.Lighting);
-			GL.Disable(EnableCap.Blend);
-			GL.Disable(EnableCap.Texture2D);
+		GL11.glPushAttrib(GL11.GL_ENABLE_BIT);
+		GL11.glPushAttrib(GL11.GL_LINE_BIT);
 
-			GL.Translate((minX + maxX) / 2, (minY + maxY) / 2 + 0.0625f, (minZ + maxZ) / 2);
-			GL.Rotate(90, 1, 0, 0);
+		GL.PushMatrix();
+		GL.Disable(EnableCap.Lighting);
+		GL.Disable(EnableCap.Blend);
+		GL.Disable(EnableCap.DepthTest);
+		GL.Disable(EnableCap.Texture2D);
 
-			GL11.glColor4f(0, 0, 0, 1);
+		GL.Translate((minX + maxX) / 2, (minY + maxY) / 2 + 0.0625f, (minZ + maxZ) / 2);
+		GL.Rotate(90, 1, 0, 0);
 
-			GL11.glLineWidth(4);
-			Fx.D2.DrawWireCircle(0, 0, (float)dist);
+		GL11.glColor4f(0, 0, 0, 1);
 
-			if (hit.all(h -> h == RayTraceResult.Type.ENTITY))
-				GL11.glColor4f(1, 0, 0, 1);
-			else if (hit.any(h -> h == RayTraceResult.Type.ENTITY))
-				GL11.glColor4f(1, 1, 0, 1);
-			else
-				GL11.glColor4f(1, 1, 1, 1);
+		GL11.glLineWidth(4);
+		Fx.D2.DrawWireCircle(0, 0, (float)dist);
 
-			GL11.glLineWidth(2);
-			Fx.D2.DrawWireCircle(0, 0, (float)dist);
-
-			GL.PopMatrix();
+		if (hit.all(h -> h == RayTraceResult.Type.ENTITY))
+			GL11.glColor4f(1, 0, 0, 1);
+		else if (hit.any(h -> h == RayTraceResult.Type.ENTITY))
+			GL11.glColor4f(1, 1, 0, 1);
+		else
 			GL11.glColor4f(1, 1, 1, 1);
-			GL11.glPopAttrib();
-			GL11.glPopAttrib();
-		}
+
+		GL11.glLineWidth(2);
+		Fx.D2.DrawWireCircle(0, 0, (float)dist);
+
+		GL.PopMatrix();
+		GL11.glColor4f(1, 1, 1, 1);
+		GL11.glPopAttrib();
+		GL11.glPopAttrib();
 	}
 
 	private Tuple<Vector3f, RayTraceResult> getArrowLandPosition(Minecraft m, float velocity, Vec3d look, float dx, float dy, float dz)

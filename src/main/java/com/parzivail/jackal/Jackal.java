@@ -8,6 +8,7 @@ import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.common.SidedProxy;
 import net.minecraftforge.fml.common.event.FMLInitializationEvent;
 import net.minecraftforge.fml.common.event.FMLPostInitializationEvent;
+import net.minecraftforge.fml.common.event.FMLPreInitializationEvent;
 
 @Mod(modid = Resources.MODID, version = Resources.VERSION)
 public class Jackal
@@ -16,6 +17,12 @@ public class Jackal
 	public static Common proxy;
 
 	public static EventHandler eventHandler;
+
+	@Mod.EventHandler
+	public void init(FMLPreInitializationEvent event)
+	{
+		proxy.preInit();
+	}
 
 	@Mod.EventHandler
 	public void init(FMLInitializationEvent event)

@@ -13,8 +13,14 @@ public class Client extends Common
 	public static KeyBinding keyWallhack;
 
 	@Override
+	public void preInit()
+	{
+	}
+
+	@Override
 	public void init()
 	{
+
 	}
 
 	@Override
