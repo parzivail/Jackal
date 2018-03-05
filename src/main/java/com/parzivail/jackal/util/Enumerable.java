@@ -10,8 +10,6 @@ public class Enumerable<T>
 
 	private Enumerable(List<T> e)
 	{
-		if (e.size() == 0)
-			throw new IllegalArgumentException();
 		this.e = e;
 	}
 
@@ -46,6 +44,8 @@ public class Enumerable<T>
 
 	public float max(Function<T, Float> f)
 	{
+		if (e.size() == 0)
+			throw new IllegalArgumentException();
 		float max = f.apply(e.get(0));
 		for (T t : e)
 			max = Math.max(max, f.apply(t));
@@ -54,6 +54,8 @@ public class Enumerable<T>
 
 	public float min(Function<T, Float> f)
 	{
+		if (e.size() == 0)
+			throw new IllegalArgumentException();
 		float min = f.apply(e.get(0));
 		for (T t : e)
 			min = Math.min(min, f.apply(t));
