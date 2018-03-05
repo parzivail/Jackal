@@ -273,14 +273,16 @@ public class EventHandler
 	@SideOnly(Side.CLIENT)
 	public void onRender(RenderWorldLastEvent event)
 	{
-		renderBowAim(event.getPartialTicks());
+		boolean isWallhack = Client.keyWallhack.isKeyDown();
+		if (isWallhack)
+			renderBowAim(event.getPartialTicks());
 	}
 
 	@SubscribeEvent
 	@SideOnly(Side.CLIENT)
 	public void onRender(RenderPlayerEvent.Post event)
 	{
-		boolean isWallhack = Client.keyWallhack.isKeyDown() || true;
+		boolean isWallhack = Client.keyWallhack.isKeyDown();
 		if (event.getEntity() != null && isWallhack)
 		{
 			EntityPlayer e = (EntityPlayer)event.getEntity();
