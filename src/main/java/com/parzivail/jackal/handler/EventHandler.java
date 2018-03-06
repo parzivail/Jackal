@@ -14,6 +14,7 @@ import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.ItemBow;
 import net.minecraft.util.Tuple;
 import net.minecraft.util.math.AxisAlignedBB;
+import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.RayTraceResult;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.World;
@@ -26,7 +27,6 @@ import net.minecraftforge.fml.relauncher.SideOnly;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.util.vector.Vector3f;
 
-import java.util.ArrayList;
 import java.util.List;
 
 public class EventHandler
@@ -120,35 +120,29 @@ public class EventHandler
 
 		Vec3d look = m.player.getLook(p);
 
-		ArrayList<Vector3f> positions = new ArrayList<>();
-		ArrayList<RayTraceResult.Type> hits = new ArrayList<>();
+		Enumerable<Vector3f> positions = Enumerable.empty();
+		Enumerable<RayTraceResult.Type> hits = Enumerable.empty();
+
+		float f = -MathHelper.sin(m.player.rotationYaw * 0.017453292F) * MathHelper.cos(m.player.rotationPitch * 0.017453292F);
+		float f1 = -MathHelper.sin(m.player.rotationPitch * 0.017453292F);
+		float f2 = MathHelper.cos(m.player.rotationYaw * 0.017453292F) * MathHelper.cos(m.player.rotationPitch * 0.017453292F);
 
 		for (int x = -1; x <= 1; x++)
 			for (int y = -1; y <= 1; y++)
 				for (int z = -1; z <= 1; z++)
 				{
-					Tuple<Vector3f, RayTraceResult> postuple = getArrowLandPosition(m, velocity, look, x, y, z);
-					positions.add(postuple.getFirst());
+					Tuple<Vector3f, RayTraceResult> postuple = getArrowLandPosition(m, velocity, f, f1, f2, x, y, z);
 					RayTraceResult hit = postuple.getSecond();
 					if (hit != null)
+					{
 						hits.add(hit.typeOfHit);
+						positions.add(postuple.getFirst());
+					}
 				}
-
-		Enumerable<Vector3f> pos = Enumerable.from(positions);
-		Enumerable<RayTraceResult.Type> hit = Enumerable.from(hits);
-
-		float minX = pos.min(v -> v.x);
-		float minY = pos.min(v -> v.y);
-		float minZ = pos.min(v -> v.z);
-
-		float maxX = pos.max(v -> v.x);
-		float maxY = pos.max(v -> v.y);
-		float maxZ = pos.max(v -> v.z);
-
-		double dist = Math.sqrt(Math.pow(maxX - minX, 2) + Math.pow(maxZ - minZ, 2));
 
 		GL11.glPushAttrib(GL11.GL_ENABLE_BIT);
 		GL11.glPushAttrib(GL11.GL_LINE_BIT);
+		GL11.glPushAttrib(GL11.GL_POINT_BIT);
 
 		GL.PushMatrix();
 		GL.Disable(EnableCap.Lighting);
@@ -156,36 +150,36 @@ public class EventHandler
 		GL.Disable(EnableCap.DepthTest);
 		GL.Disable(EnableCap.Texture2D);
 
-		GL.Translate((minX + maxX) / 2, (minY + maxY) / 2 + 0.0625f, (minZ + maxZ) / 2);
-		GL.Rotate(90, 1, 0, 0);
-
+		GL11.glPointSize(5);
 		GL11.glColor4f(0, 0, 0, 1);
 
-		GL11.glLineWidth(4);
-		Fx.D2.DrawWireCircle(0, 0, (float)dist);
+		GL.Begin(PrimitiveType.Points);
+		for (Vector3f hitPt : positions)
+			GL.Vertex3(hitPt);
+		GL.End();
 
-		if (hit.all(h -> h == RayTraceResult.Type.ENTITY))
+		GL11.glPointSize(3);
+		if (hits.all(h -> h == RayTraceResult.Type.ENTITY))
 			GL11.glColor4f(1, 0, 0, 1);
-		else if (hit.any(h -> h == RayTraceResult.Type.ENTITY))
+		else if (hits.any(h -> h == RayTraceResult.Type.ENTITY))
 			GL11.glColor4f(1, 1, 0, 1);
 		else
 			GL11.glColor4f(1, 1, 1, 1);
 
-		GL11.glLineWidth(2);
-		Fx.D2.DrawWireCircle(0, 0, (float)dist);
+		GL.Begin(PrimitiveType.Points);
+		for (Vector3f hitPt : positions)
+			GL.Vertex3(hitPt);
+		GL.End();
 
 		GL.PopMatrix();
 		GL11.glColor4f(1, 1, 1, 1);
 		GL11.glPopAttrib();
 		GL11.glPopAttrib();
+		GL11.glPopAttrib();
 	}
 
-	private Tuple<Vector3f, RayTraceResult> getArrowLandPosition(Minecraft m, float velocity, Vec3d look, float dx, float dy, float dz)
+	private Tuple<Vector3f, RayTraceResult> getArrowLandPosition(Minecraft m, float velocity, double x, double y, double z, float dx, float dy, float dz)
 	{
-		double x = look.x;
-		double y = look.y;
-		double z = look.z;
-
 		x += dx * 0.007499999832361937D;
 		y += dy * 0.007499999832361937D;
 		z += dz * 0.007499999832361937D;
@@ -206,6 +200,7 @@ public class EventHandler
 			motionY += m.player.motionY;
 		}
 
+		boolean found = false;
 		Vector3f pos = new Vector3f(0, (float)(m.player.getEyeHeight() - 0.10000000149011612D), 0);
 		Vector3f.add(pos, new Vector3f((float)motionX, (float)motionY, (float)motionZ), pos);
 		RayTraceResult fhit = null;
@@ -220,7 +215,8 @@ public class EventHandler
 			{
 				fhit = hit.getSecond();
 				fhit.typeOfHit = RayTraceResult.Type.ENTITY;
-				pos = new Vector3f((float)(fhit.hitVec.x - m.player.posX), (float)(fhit.hitVec.y - m.player.posY), (float)(fhit.hitVec.z - m.player.posZ));
+				pos = makeRelativeHitPos(m, fhit);
+				found = true;
 				break;
 			}
 
@@ -229,7 +225,8 @@ public class EventHandler
 			{
 				fhit = raytraceresult;
 				fhit.typeOfHit = RayTraceResult.Type.BLOCK;
-				pos = new Vector3f((float)(raytraceresult.hitVec.x - m.player.posX), (float)(raytraceresult.hitVec.y - m.player.posY), (float)(raytraceresult.hitVec.z - m.player.posZ));
+				pos = makeRelativeHitPos(m, fhit);
+				found = true;
 				break;
 			}
 
@@ -240,7 +237,12 @@ public class EventHandler
 			Vector3f.add(pos, new Vector3f((float)motionX, (float)motionY, (float)motionZ), pos);
 		}
 
-		return new Tuple<>(pos, fhit);
+		return new Tuple<>(pos, found ? fhit : null);
+	}
+
+	private Vector3f makeRelativeHitPos(Minecraft m, RayTraceResult fhit)
+	{
+		return new Vector3f((float)(fhit.hitVec.x - m.player.posX), (float)(fhit.hitVec.y - m.player.posY), (float)(fhit.hitVec.z - m.player.posZ));
 	}
 
 	protected Tuple<Entity, RayTraceResult> findEntityOnPath(Entity exclude, World world, Vec3d start, Vec3d end)
