@@ -5,6 +5,7 @@ import com.parzivail.jackal.util.gltk.GL;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.FontRenderer;
 import net.minecraft.client.renderer.GlStateManager;
+import net.minecraft.client.renderer.RenderHelper;
 import net.minecraft.item.ItemStack;
 import org.lwjgl.opengl.GL11;
 
@@ -27,7 +28,7 @@ public class Toast
 		GL.PushMatrix();
 
 		GL.Enable(EnableCap.Blend);
-		GL11.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
+		GlStateManager.tryBlendFuncSeparate(GlStateManager.SourceFactor.SRC_ALPHA, GlStateManager.DestFactor.ONE_MINUS_SRC_ALPHA, GlStateManager.SourceFactor.ONE, GlStateManager.DestFactor.ZERO);
 		GL.Disable(EnableCap.Lighting);
 		GL.Disable(EnableCap.DepthTest);
 
@@ -38,17 +39,23 @@ public class Toast
 		GL.Translate(3, 3, 0);
 		GL.Scale(1 / 2f);
 
-		for (Toast t : toasts)
+		boolean hadItem = false;
+		for (int i = 0; i < toasts.size(); i++)
 		{
+			Toast t = toasts.get(i);
+			boolean hasItem = !t.itemStack.isEmpty();
+			GL.Translate(0, i == 0 ? 0 : (!hasItem && !hadItem ? fr.FONT_HEIGHT * 1.2f : 17), 0);
 			GL.PushMatrix();
-			if (!t.itemStack.isEmpty())
+			fr.drawString(t.content, !hasItem ? 0 : 18, 8 - fr.FONT_HEIGHT / 2, 0xFFFFFF, false);
+			if (hasItem)
 			{
+				RenderHelper.enableGUIStandardItemLighting();
 				m.getRenderItem().renderItemAndEffectIntoGUI(t.itemStack, 0, 0);
-				GlStateManager.enableAlpha();
+				RenderHelper.disableStandardItemLighting();
 			}
-			fr.drawString(t.content, t.itemStack.isEmpty() ? 0 : 18, 8 - fr.FONT_HEIGHT / 2, 0xFFFFFF, false);
 			GL.PopMatrix();
-			GL.Translate(0, fr.FONT_HEIGHT * 1.5f, 0);
+
+			hadItem = hasItem;
 		}
 
 		GL.PopMatrix();
@@ -68,7 +75,7 @@ public class Toast
 	public Toast(String content, ItemStack itemStack, int time)
 	{
 		this.content = content;
-		this.itemStack = itemStack;
+		this.itemStack = itemStack.copy();
 		this.endTime = System.currentTimeMillis() + time;
 	}
 
