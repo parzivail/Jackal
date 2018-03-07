@@ -30,6 +30,15 @@ public class Enumerable<T> extends ArrayList<T>
 		return Enumerable.from(r);
 	}
 
+	public Enumerable<T> where(Function<T, Boolean> f)
+	{
+		ArrayList<T> r = new ArrayList<>();
+		for (T t : this)
+			if (f.apply(t))
+				r.add(t);
+		return Enumerable.from(r);
+	}
+
 	public boolean any(Function<T, Boolean> f)
 	{
 		for (T t : this)

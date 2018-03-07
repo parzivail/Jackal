@@ -3,6 +3,7 @@ package com.parzivail.jackal.handler;
 import com.parzivail.jackal.proxy.Client;
 import com.parzivail.jackal.util.Enumerable;
 import com.parzivail.jackal.util.Fx;
+import com.parzivail.jackal.util.Toast;
 import com.parzivail.jackal.util.gltk.EnableCap;
 import com.parzivail.jackal.util.gltk.GL;
 import com.parzivail.jackal.util.gltk.PrimitiveType;
@@ -18,10 +19,10 @@ import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.RayTraceResult;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.World;
-import net.minecraftforge.client.event.RenderLivingEvent;
-import net.minecraftforge.client.event.RenderPlayerEvent;
-import net.minecraftforge.client.event.RenderWorldLastEvent;
+import net.minecraftforge.client.event.*;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
+import net.minecraftforge.fml.common.gameevent.InputEvent;
+import net.minecraftforge.fml.common.gameevent.TickEvent;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
 import org.lwjgl.opengl.GL11;
@@ -279,47 +280,6 @@ public class EventHandler
 		return new Tuple<>(entity, hit);
 	}
 
-	@SubscribeEvent
-	@SideOnly(Side.CLIENT)
-	public void onRender(RenderWorldLastEvent event)
-	{
-		boolean isWallhack = Client.keyWallhack.isKeyDown();
-		if (isWallhack)
-			renderBowAim(event.getPartialTicks());
-	}
-
-	@SubscribeEvent
-	@SideOnly(Side.CLIENT)
-	public void onRender(RenderPlayerEvent.Post event)
-	{
-		boolean isWallhack = Client.keyWallhack.isKeyDown();
-		if (event.getEntity() != null && isWallhack)
-		{
-			EntityPlayer e = (EntityPlayer)event.getEntity();
-			double x = event.getX();
-			double y = event.getY();
-			double z = event.getZ();
-
-			renderWallhack(e, x, y, z);
-		}
-	}
-
-	@SubscribeEvent
-	@SideOnly(Side.CLIENT)
-	public void onRender(RenderLivingEvent.Post event)
-	{
-		boolean isWallhack = Client.keyWallhack.isKeyDown();
-		if (event.getEntity() != null && isWallhack)
-		{
-			EntityLivingBase e = event.getEntity();
-			double x = event.getX();
-			double y = event.getY();
-			double z = event.getZ();
-
-			renderWallhack(e, x, y, z);
-		}
-	}
-
 	private static void renderAABB(AxisAlignedBB aabb)
 	{
 		if (aabb == null)
@@ -356,5 +316,81 @@ public class EventHandler
 		GL.Vertex3(aabb.maxX, aabb.maxY, aabb.maxZ);
 		GL.Vertex3(aabb.maxX, aabb.minY, aabb.maxZ);
 		GL.End();
+	}
+
+	@SubscribeEvent
+	@SideOnly(Side.CLIENT)
+	public void onRender(RenderWorldLastEvent event)
+	{
+		boolean isWallhack = Client.keyWallhack.isKeyDown();
+		if (isWallhack)
+			renderBowAim(event.getPartialTicks());
+	}
+
+	@SubscribeEvent
+	@SideOnly(Side.CLIENT)
+	public void onRender(FOVUpdateEvent event)
+	{
+		if (Client.keyZoom.isKeyDown())
+			event.setNewfov(0.1f);
+	}
+
+	@SubscribeEvent
+	@SideOnly(Side.CLIENT)
+	public void onInput(InputEvent.KeyInputEvent event)
+	{
+		if (Client.keyDebug.isPressed())
+		{
+			new Toast(Minecraft.getMinecraft().world.rand.nextGaussian() + "", Minecraft.getMinecraft().player.getHeldItemMainhand(), 1000).show();
+		}
+	}
+
+	@SubscribeEvent
+	@SideOnly(Side.CLIENT)
+	public void onTick(TickEvent.ClientTickEvent event)
+	{
+		Toast.tick();
+	}
+
+	@SubscribeEvent
+	@SideOnly(Side.CLIENT)
+	public void onRender(RenderGameOverlayEvent event)
+	{
+		if (event.getType() != RenderGameOverlayEvent.ElementType.HOTBAR)
+			return;
+
+		Toast.render();
+	}
+
+	@SubscribeEvent
+	@SideOnly(Side.CLIENT)
+	public void onRender(RenderPlayerEvent.Post event)
+	{
+		boolean isWallhack = Client.keyWallhack.isKeyDown();
+		if (event.getEntity() != null && isWallhack)
+		{
+			EntityPlayer e = (EntityPlayer)event.getEntity();
+			double x = event.getX();
+			double y = event.getY();
+			double z = event.getZ();
+
+			renderWallhack(e, x, y, z);
+		}
+	}
+
+	@SubscribeEvent
+	@SideOnly(Side.CLIENT)
+	public void onRender(RenderLivingEvent.Post event)
+	{
+		boolean isWallhack = Client.keyWallhack.isKeyDown();
+		if (event.getEntity() != null && isWallhack)
+		{
+			EntityLivingBase e = event.getEntity();
+			double x = event.getX();
+			double y = event.getY();
+			double z = event.getZ();
+
+			renderWallhack(e, x, y, z);
+		}
 	}
 }
