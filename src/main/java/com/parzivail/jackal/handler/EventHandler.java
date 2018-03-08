@@ -13,6 +13,7 @@ import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.ItemBow;
+import net.minecraft.item.ItemStack;
 import net.minecraft.util.Tuple;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.MathHelper;
@@ -22,6 +23,7 @@ import net.minecraft.world.World;
 import net.minecraftforge.client.event.*;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.gameevent.InputEvent;
+import net.minecraftforge.fml.common.gameevent.PlayerEvent;
 import net.minecraftforge.fml.common.gameevent.TickEvent;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
@@ -118,8 +120,6 @@ public class EventHandler
 		float pull = m.player.getItemInUseMaxCount();
 		float velocity = ItemBow.getArrowVelocity((int)pull);
 		velocity *= 3;
-
-		Vec3d look = m.player.getLook(p);
 
 		Enumerable<Vector3f> positions = Enumerable.empty();
 		Enumerable<RayTraceResult.Type> hits = Enumerable.empty();
@@ -354,9 +354,17 @@ public class EventHandler
 
 	@SubscribeEvent
 	@SideOnly(Side.CLIENT)
+	public void on(PlayerEvent.ItemPickupEvent event)
+	{
+		ItemStack s = event.getStack();
+		new Toast("+" + s.getCount() + " " + s.getDisplayName(), s, 1000).show();
+	}
+
+	@SubscribeEvent
+	@SideOnly(Side.CLIENT)
 	public void onRender(RenderGameOverlayEvent event)
 	{
-		if (event.getType() != RenderGameOverlayEvent.ElementType.HOTBAR)
+		if (event.getType() != RenderGameOverlayEvent.ElementType.TEXT)
 			return;
 
 		Toast.render();
