@@ -9,7 +9,6 @@ import com.parzivail.jackal.util.Enumerable;
 import com.parzivail.jackal.util.Toast;
 import net.minecraft.client.settings.KeyBinding;
 import net.minecraft.entity.EntityLivingBase;
-import net.minecraft.item.Item;
 import net.minecraftforge.fml.client.registry.ClientRegistry;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
@@ -20,13 +19,7 @@ public class Client extends Common
 	@SideOnly(Side.CLIENT)
 	public static KeyBinding keyDebug;
 	@SideOnly(Side.CLIENT)
-	public static KeyBinding keyWallhack;
-	@SideOnly(Side.CLIENT)
-	public static KeyBinding keyArrowGuide;
-	@SideOnly(Side.CLIENT)
 	public static KeyBinding keyZoom;
-
-	public static boolean isArrowGuide;
 
 	private static Enumerable<IOverlay> overlays = Enumerable.empty();
 
@@ -37,12 +30,14 @@ public class Client extends Common
 
 	public static void delegateKeyInputToOverlays()
 	{
-		overlays.forEach(IOverlay::handleKeyInput);
+		for (IOverlay overlay : overlays)
+			if (overlay.getKeyBinding().isPressed())
+				overlay.handleKeyInput();
 	}
 
-	public static void showOverlayEnabledToast(IOverlay overlay, Item icon)
+	public static void showOverlayToggleToast(IOverlay overlay)
 	{
-		new Toast(overlay.getName() + " " + (overlay.isEnabled() ? "enabled" : "disabled"), icon.getDefaultInstance(), 1000).show();
+		new Toast(overlay.getName() + " " + (overlay.isEnabled() ? "enabled" : "disabled"), overlay.getIcon().getDefaultInstance(), 1000).show();
 	}
 
 	@Override
@@ -62,12 +57,10 @@ public class Client extends Common
 	{
 		keyDebug = registerKeybind("keyDebug", Keyboard.KEY_N);
 
-		keyWallhack = registerKeybind("wallHack", Keyboard.KEY_X);
-		keyArrowGuide = registerKeybind("arrowGuide", Keyboard.KEY_G);
 		keyZoom = registerKeybind("zoom", Keyboard.KEY_Z);
 	}
 
-	private static KeyBinding registerKeybind(String keyName, int keyCode)
+	public static KeyBinding registerKeybind(String keyName, int keyCode)
 	{
 		KeyBinding b = new KeyBinding("key." + Resources.MODID + "." + keyName, keyCode, "key." + Resources.MODID);
 		ClientRegistry.registerKeyBinding(b);

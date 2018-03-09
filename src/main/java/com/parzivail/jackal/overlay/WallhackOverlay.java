@@ -7,10 +7,15 @@ import com.parzivail.jackal.util.gltk.GL;
 import com.parzivail.jackal.util.gltk.PrimitiveType;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.FontRenderer;
+import net.minecraft.client.settings.KeyBinding;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.init.Items;
+import net.minecraft.item.Item;
 import net.minecraft.util.math.AxisAlignedBB;
+import net.minecraftforge.fml.relauncher.Side;
+import net.minecraftforge.fml.relauncher.SideOnly;
+import org.lwjgl.input.Keyboard;
 import org.lwjgl.opengl.GL11;
 
 /**
@@ -18,7 +23,21 @@ import org.lwjgl.opengl.GL11;
  */
 public class WallhackOverlay implements IOverlay
 {
+	@SideOnly(Side.CLIENT)
+	public static KeyBinding key;
+
 	private static boolean enabled;
+
+	public WallhackOverlay()
+	{
+		key = Client.registerKeybind("wallHack", Keyboard.KEY_X);
+	}
+
+	@Override
+	public KeyBinding getKeyBinding()
+	{
+		return key;
+	}
 
 	@Override
 	public boolean isEnabled()
@@ -33,13 +52,16 @@ public class WallhackOverlay implements IOverlay
 	}
 
 	@Override
+	public Item getIcon()
+	{
+		return Items.ENDER_EYE;
+	}
+
+	@Override
 	public void handleKeyInput()
 	{
-		if (Client.keyWallhack.isPressed())
-		{
-			enabled = !enabled;
-			Client.showOverlayEnabledToast(this, Items.ENDER_EYE);
-		}
+		enabled = !enabled;
+		Client.showOverlayToggleToast(this);
 	}
 
 	@Override
@@ -49,12 +71,7 @@ public class WallhackOverlay implements IOverlay
 	}
 
 	@Override
-	public void render(EntityLivingBase entity, float partialTicks, float x, float y, float z)
-	{
-		renderWallhack(entity, x, y, z);
-	}
-
-	private void renderWallhack(EntityLivingBase e, double x, double y, double z)
+	public void render(EntityLivingBase e, float partialTicks, float x, float y, float z)
 	{
 		Minecraft m = Minecraft.getMinecraft();
 

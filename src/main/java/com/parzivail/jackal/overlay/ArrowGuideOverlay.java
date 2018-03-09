@@ -6,9 +6,11 @@ import com.parzivail.jackal.util.gltk.EnableCap;
 import com.parzivail.jackal.util.gltk.GL;
 import com.parzivail.jackal.util.gltk.PrimitiveType;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.settings.KeyBinding;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.init.Items;
+import net.minecraft.item.Item;
 import net.minecraft.item.ItemBow;
 import net.minecraft.util.Tuple;
 import net.minecraft.util.math.AxisAlignedBB;
@@ -16,6 +18,9 @@ import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.RayTraceResult;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.World;
+import net.minecraftforge.fml.relauncher.Side;
+import net.minecraftforge.fml.relauncher.SideOnly;
+import org.lwjgl.input.Keyboard;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.util.vector.Vector3f;
 
@@ -26,7 +31,21 @@ import java.util.List;
  */
 public class ArrowGuideOverlay implements IOverlay
 {
+	@SideOnly(Side.CLIENT)
+	public static KeyBinding key;
+
 	private static boolean enabled;
+
+	public ArrowGuideOverlay()
+	{
+		key = Client.registerKeybind("arrowGuide", Keyboard.KEY_G);
+	}
+
+	@Override
+	public KeyBinding getKeyBinding()
+	{
+		return key;
+	}
 
 	@Override
 	public boolean isEnabled()
@@ -41,13 +60,16 @@ public class ArrowGuideOverlay implements IOverlay
 	}
 
 	@Override
+	public Item getIcon()
+	{
+		return Items.ARROW;
+	}
+
+	@Override
 	public void handleKeyInput()
 	{
-		if (Client.keyArrowGuide.isPressed())
-		{
-			enabled = !enabled;
-			Client.showOverlayEnabledToast(this, Items.ARROW);
-		}
+		enabled = !enabled;
+		Client.showOverlayToggleToast(this);
 	}
 
 	@Override
