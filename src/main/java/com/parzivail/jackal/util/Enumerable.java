@@ -1,11 +1,18 @@
 package com.parzivail.jackal.util;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.function.Function;
 
 public class Enumerable<T> extends ArrayList<T>
 {
+	@FunctionalInterface
+	interface DualFunction<A, B, R>
+	{
+		public R apply(A one, B two);
+	}
+
 	private Enumerable()
 	{
 	}
@@ -27,6 +34,14 @@ public class Enumerable<T> extends ArrayList<T>
 		ArrayList<R> r = new ArrayList<>();
 		for (T t : this)
 			r.add(f.apply(t));
+		return Enumerable.from(r);
+	}
+
+	public <R> Enumerable<R> selectMany(Function<T, Collection<R>> f)
+	{
+		ArrayList<R> r = new ArrayList<>();
+		for (T t : this)
+			r.addAll(f.apply(t));
 		return Enumerable.from(r);
 	}
 
@@ -73,6 +88,16 @@ public class Enumerable<T> extends ArrayList<T>
 		for (T t : this)
 			min = Math.min(min, f.apply(t));
 		return min;
+	}
+
+	public T aggregate(DualFunction<T, T, T> f)
+	{
+		if (size() == 0)
+			throw new IllegalArgumentException();
+		T agg = get(0);
+		for (int i = 1; i < size(); i++)
+			agg = f.apply(agg, get(i));
+		return agg;
 	}
 
 	public float sum(Function<T, Float> f)

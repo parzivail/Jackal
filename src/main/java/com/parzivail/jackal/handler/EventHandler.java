@@ -23,17 +23,19 @@ import net.minecraft.world.World;
 import net.minecraftforge.client.event.*;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.gameevent.InputEvent;
-import net.minecraftforge.fml.common.gameevent.PlayerEvent;
 import net.minecraftforge.fml.common.gameevent.TickEvent;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.util.vector.Vector3f;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class EventHandler
 {
+	private static List<ItemStack> inventoryPlayer;
+
 	private void renderWallhack(EntityLivingBase e, double x, double y, double z)
 	{
 		Minecraft m = Minecraft.getMinecraft();
@@ -350,14 +352,25 @@ public class EventHandler
 	public void onTick(TickEvent.ClientTickEvent event)
 	{
 		Toast.tick();
-	}
 
-	@SubscribeEvent
-	@SideOnly(Side.CLIENT)
-	public void on(PlayerEvent.ItemPickupEvent event)
-	{
-		ItemStack s = event.getStack();
-		new Toast("+" + s.getCount() + " " + s.getDisplayName(), s, 1000).show();
+		EntityPlayer p = Minecraft.getMinecraft().player;
+		if (p == null || p.inventory == null || p.inventory.mainInventory == null)
+		{
+			if (inventoryPlayer != null && inventoryPlayer.size() > 0)
+				inventoryPlayer.clear();
+			return;
+		}
+
+		List<ItemStack> currentInventory = Enumerable.from(Minecraft.getMinecraft().player.inventory.mainInventory).where(s -> s != null && !s.isEmpty());
+		List<ItemStack> currentInventoryTemp = new ArrayList<>(currentInventory);
+		if (inventoryPlayer != null && inventoryPlayer.size() > 0)
+		{
+			currentInventoryTemp.removeAll(inventoryPlayer);
+			if (currentInventoryTemp.size() > 0)
+				for (ItemStack stack : currentInventoryTemp)
+					new Toast("+" + stack.getCount() + " " + stack.getDisplayName(), stack, 1000).show();
+		}
+		inventoryPlayer = currentInventory;
 	}
 
 	@SubscribeEvent
