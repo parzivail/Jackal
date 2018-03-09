@@ -7,7 +7,11 @@ import net.minecraft.entity.EntityLivingBase;
  */
 public interface IOverlay
 {
-	boolean shouldRender(RenderPhase phase);
+	boolean isEnabled();
 
+	String getName();
+
+	void handleKeyInput();
+	boolean shouldRender(RenderPhase phase);
 	void render(EntityLivingBase entity, float partialTicks, float x, float y, float z);
 }

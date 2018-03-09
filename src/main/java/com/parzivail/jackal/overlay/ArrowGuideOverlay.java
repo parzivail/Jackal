@@ -8,6 +8,7 @@ import com.parzivail.jackal.util.gltk.PrimitiveType;
 import net.minecraft.client.Minecraft;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLivingBase;
+import net.minecraft.init.Items;
 import net.minecraft.item.ItemBow;
 import net.minecraft.util.Tuple;
 import net.minecraft.util.math.AxisAlignedBB;
@@ -25,19 +26,43 @@ import java.util.List;
  */
 public class ArrowGuideOverlay implements IOverlay
 {
+	private static boolean enabled;
+
+	@Override
+	public boolean isEnabled()
+	{
+		return enabled;
+	}
+
+	@Override
+	public String getName()
+	{
+		return "Arrow Guide";
+	}
+
+	@Override
+	public void handleKeyInput()
+	{
+		if (Client.keyArrowGuide.isPressed())
+		{
+			enabled = !enabled;
+			Client.showOverlayEnabledToast(this, Items.ARROW);
+		}
+	}
+
 	@Override
 	public boolean shouldRender(RenderPhase phase)
 	{
-		return phase == RenderPhase.World && Client.isArrowGuide;
+		return phase == RenderPhase.World && enabled;
 	}
 
 	@Override
 	public void render(EntityLivingBase entity, float partialTicks, float x, float y, float z)
 	{
-		renderBowAim(partialTicks);
+		renderBowAim();
 	}
 
-	private void renderBowAim(float p)
+	private void renderBowAim()
 	{
 		Minecraft m = Minecraft.getMinecraft();
 

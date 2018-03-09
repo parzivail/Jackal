@@ -4,7 +4,6 @@ import com.parzivail.jackal.overlay.RenderPhase;
 import com.parzivail.jackal.proxy.Client;
 import com.parzivail.jackal.util.Toast;
 import net.minecraft.client.Minecraft;
-import net.minecraft.init.Items;
 import net.minecraftforge.client.event.*;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.gameevent.InputEvent;
@@ -33,11 +32,7 @@ public class EventHandler
 	@SideOnly(Side.CLIENT)
 	public void onInput(InputEvent.KeyInputEvent event)
 	{
-		if (Client.keyArrowGuide.isPressed())
-		{
-			Client.isArrowGuide = !Client.isArrowGuide;
-			new Toast("Arrow guide " + (Client.isArrowGuide ? "enabled" : "disabled"), Items.ARROW.getDefaultInstance(), 1000).show();
-		}
+		Client.delegateKeyInputToOverlays();
 	}
 
 	@SubscribeEvent

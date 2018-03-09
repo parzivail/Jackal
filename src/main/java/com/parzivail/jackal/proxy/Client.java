@@ -6,8 +6,10 @@ import com.parzivail.jackal.overlay.IOverlay;
 import com.parzivail.jackal.overlay.RenderPhase;
 import com.parzivail.jackal.overlay.WallhackOverlay;
 import com.parzivail.jackal.util.Enumerable;
+import com.parzivail.jackal.util.Toast;
 import net.minecraft.client.settings.KeyBinding;
 import net.minecraft.entity.EntityLivingBase;
+import net.minecraft.item.Item;
 import net.minecraftforge.fml.client.registry.ClientRegistry;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
@@ -31,6 +33,16 @@ public class Client extends Common
 	public static void renderOverlays(EntityLivingBase entity, float partialTicks, RenderPhase phase, float x, float y, float z)
 	{
 		overlays.where(iOverlay -> iOverlay.shouldRender(phase)).forEach(iOverlay -> iOverlay.render(entity, partialTicks, x, y, z));
+	}
+
+	public static void delegateKeyInputToOverlays()
+	{
+		overlays.forEach(IOverlay::handleKeyInput);
+	}
+
+	public static void showOverlayEnabledToast(IOverlay overlay, Item icon)
+	{
+		new Toast(overlay.getName() + " " + (overlay.isEnabled() ? "enabled" : "disabled"), icon.getDefaultInstance(), 1000).show();
 	}
 
 	@Override

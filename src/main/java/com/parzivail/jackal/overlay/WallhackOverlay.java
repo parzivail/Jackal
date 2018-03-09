@@ -9,6 +9,7 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.FontRenderer;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.init.Items;
 import net.minecraft.util.math.AxisAlignedBB;
 import org.lwjgl.opengl.GL11;
 
@@ -17,10 +18,34 @@ import org.lwjgl.opengl.GL11;
  */
 public class WallhackOverlay implements IOverlay
 {
+	private static boolean enabled;
+
+	@Override
+	public boolean isEnabled()
+	{
+		return enabled;
+	}
+
+	@Override
+	public String getName()
+	{
+		return "Wallhack";
+	}
+
+	@Override
+	public void handleKeyInput()
+	{
+		if (Client.keyWallhack.isPressed())
+		{
+			enabled = !enabled;
+			Client.showOverlayEnabledToast(this, Items.ENDER_EYE);
+		}
+	}
+
 	@Override
 	public boolean shouldRender(RenderPhase phase)
 	{
-		return phase == RenderPhase.Entity && Client.keyWallhack.isKeyDown();
+		return phase == RenderPhase.Entity && enabled;
 	}
 
 	@Override
@@ -43,7 +68,7 @@ public class WallhackOverlay implements IOverlay
 		GL11.glColor4f(1, 1, 1, 1);
 
 		GL11.glPolygonMode(GL11.GL_FRONT_AND_BACK, GL11.GL_LINE);
-		Minecraft.getMinecraft().entityRenderer.disableLightmap();
+		m.entityRenderer.disableLightmap();
 
 		GL.Disable(EnableCap.Lighting);
 		GL.Disable(EnableCap.Blend);
