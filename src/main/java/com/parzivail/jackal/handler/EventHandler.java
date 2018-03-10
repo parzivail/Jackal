@@ -1,8 +1,8 @@
 package com.parzivail.jackal.handler;
 
-import com.parzivail.jackal.overlay.RenderPhase;
 import com.parzivail.jackal.proxy.Client;
 import com.parzivail.jackal.util.Toast;
+import com.parzivail.jackal.util.overlay.RenderScope;
 import net.minecraft.client.Minecraft;
 import net.minecraftforge.client.event.*;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
@@ -17,7 +17,7 @@ public class EventHandler
 	@SideOnly(Side.CLIENT)
 	public void onRender(RenderWorldLastEvent event)
 	{
-		Client.renderOverlays(Minecraft.getMinecraft().player, event.getPartialTicks(), RenderPhase.World, 0, 0, 0);
+		Client.renderOverlays(Minecraft.getMinecraft().player, event.getPartialTicks(), RenderScope.Once, 0, 0, 0);
 	}
 
 	@SubscribeEvent
@@ -57,7 +57,7 @@ public class EventHandler
 	public void onRender(RenderPlayerEvent.Post event)
 	{
 		if (event.getEntity() != null)
-			Client.renderOverlays(event.getEntityLiving(), event.getPartialRenderTick(), RenderPhase.Entity, (float)event.getX(), (float)event.getY(), (float)event.getZ());
+			Client.renderOverlays(event.getEntityLiving(), event.getPartialRenderTick(), RenderScope.EachEntity, (float)event.getX(), (float)event.getY(), (float)event.getZ());
 	}
 
 	@SubscribeEvent
@@ -65,6 +65,6 @@ public class EventHandler
 	public void onRender(RenderLivingEvent.Post event)
 	{
 		if (event.getEntity() != null)
-			Client.renderOverlays(event.getEntity(), event.getPartialRenderTick(), RenderPhase.Entity, (float)event.getX(), (float)event.getY(), (float)event.getZ());
+			Client.renderOverlays(event.getEntity(), event.getPartialRenderTick(), RenderScope.EachEntity, (float)event.getX(), (float)event.getY(), (float)event.getZ());
 	}
 }

@@ -5,6 +5,8 @@ import com.parzivail.jackal.util.Fx;
 import com.parzivail.jackal.util.gltk.EnableCap;
 import com.parzivail.jackal.util.gltk.GL;
 import com.parzivail.jackal.util.gltk.PrimitiveType;
+import com.parzivail.jackal.util.overlay.IJackalModule;
+import com.parzivail.jackal.util.overlay.RenderScope;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.FontRenderer;
 import net.minecraft.client.settings.KeyBinding;
@@ -21,14 +23,14 @@ import org.lwjgl.opengl.GL11;
 /**
  * Created by Colby on 3/9/2018.
  */
-public class WallhackOverlay implements IOverlay
+public class WallhackModule implements IJackalModule
 {
 	@SideOnly(Side.CLIENT)
 	public static KeyBinding key;
 
 	private static boolean enabled;
 
-	public WallhackOverlay()
+	public WallhackModule()
 	{
 		key = Client.registerKeybind("wallHack", Keyboard.KEY_X);
 	}
@@ -65,9 +67,9 @@ public class WallhackOverlay implements IOverlay
 	}
 
 	@Override
-	public boolean shouldRender(RenderPhase phase)
+	public boolean shouldRender(RenderScope phase)
 	{
-		return phase == RenderPhase.Entity && enabled;
+		return phase == RenderScope.EachEntity && enabled;
 	}
 
 	@Override

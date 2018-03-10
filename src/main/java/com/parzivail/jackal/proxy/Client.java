@@ -1,12 +1,13 @@
 package com.parzivail.jackal.proxy;
 
 import com.parzivail.jackal.Resources;
-import com.parzivail.jackal.overlay.ArrowGuideOverlay;
-import com.parzivail.jackal.overlay.IOverlay;
-import com.parzivail.jackal.overlay.RenderPhase;
-import com.parzivail.jackal.overlay.WallhackOverlay;
+import com.parzivail.jackal.overlay.ArrowGuideModule;
+import com.parzivail.jackal.overlay.PsychicModule;
+import com.parzivail.jackal.overlay.WallhackModule;
 import com.parzivail.jackal.util.Enumerable;
 import com.parzivail.jackal.util.Toast;
+import com.parzivail.jackal.util.overlay.IJackalModule;
+import com.parzivail.jackal.util.overlay.RenderScope;
 import net.minecraft.client.settings.KeyBinding;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraftforge.fml.client.registry.ClientRegistry;
@@ -21,23 +22,23 @@ public class Client extends Common
 	@SideOnly(Side.CLIENT)
 	public static KeyBinding keyZoom;
 
-	private static Enumerable<IOverlay> overlays = Enumerable.empty();
+	private static Enumerable<IJackalModule> overlays = Enumerable.empty();
 
-	public static void renderOverlays(EntityLivingBase entity, float partialTicks, RenderPhase phase, float x, float y, float z)
+	public static void renderOverlays(EntityLivingBase entity, float partialTicks, RenderScope phase, float x, float y, float z)
 	{
-		overlays.where(iOverlay -> iOverlay.shouldRender(phase)).forEach(iOverlay -> iOverlay.render(entity, partialTicks, x, y, z));
+		overlays.where(iModule -> iModule.shouldRender(phase)).forEach(iModule -> iModule.render(entity, partialTicks, x, y, z));
 	}
 
 	public static void delegateKeyInputToOverlays()
 	{
-		for (IOverlay overlay : overlays)
+		for (IJackalModule overlay : overlays)
 			if (overlay.getKeyBinding().isPressed())
 				overlay.handleKeyInput();
 	}
 
-	public static void showOverlayToggleToast(IOverlay overlay)
+	public static void showOverlayToggleToast(IJackalModule overlay)
 	{
-		new Toast(overlay.getName() + " " + (overlay.isEnabled() ? "enabled" : "disabled"), overlay.getIcon().getDefaultInstance(), 1000).show();
+		new Toast(overlay.getName() + " " + (overlay.isEnabled() ? "enabled" : "disabled"), overlay.getIcon().getDefaultInstance(), Toast.LENGTH_SHORT).show();
 	}
 
 	@Override
@@ -48,8 +49,9 @@ public class Client extends Common
 	@Override
 	public void init()
 	{
-		overlays.add(new ArrowGuideOverlay());
-		overlays.add(new WallhackOverlay());
+		overlays.add(new ArrowGuideModule());
+		overlays.add(new WallhackModule());
+		overlays.add(new PsychicModule());
 	}
 
 	@Override

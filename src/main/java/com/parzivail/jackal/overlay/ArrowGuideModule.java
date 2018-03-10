@@ -1,10 +1,13 @@
 package com.parzivail.jackal.overlay;
 
 import com.parzivail.jackal.proxy.Client;
+import com.parzivail.jackal.util.EntityUtil;
 import com.parzivail.jackal.util.Enumerable;
 import com.parzivail.jackal.util.gltk.EnableCap;
 import com.parzivail.jackal.util.gltk.GL;
 import com.parzivail.jackal.util.gltk.PrimitiveType;
+import com.parzivail.jackal.util.overlay.IJackalModule;
+import com.parzivail.jackal.util.overlay.RenderScope;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.settings.KeyBinding;
 import net.minecraft.entity.Entity;
@@ -13,30 +16,26 @@ import net.minecraft.init.Items;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemBow;
 import net.minecraft.util.Tuple;
-import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.RayTraceResult;
 import net.minecraft.util.math.Vec3d;
-import net.minecraft.world.World;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
 import org.lwjgl.input.Keyboard;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.util.vector.Vector3f;
 
-import java.util.List;
-
 /**
  * Created by Colby on 3/9/2018.
  */
-public class ArrowGuideOverlay implements IOverlay
+public class ArrowGuideModule implements IJackalModule
 {
 	@SideOnly(Side.CLIENT)
-	public static KeyBinding key;
+	private static KeyBinding key;
 
 	private static boolean enabled;
 
-	public ArrowGuideOverlay()
+	public ArrowGuideModule()
 	{
 		key = Client.registerKeybind("arrowGuide", Keyboard.KEY_G);
 	}
@@ -73,18 +72,13 @@ public class ArrowGuideOverlay implements IOverlay
 	}
 
 	@Override
-	public boolean shouldRender(RenderPhase phase)
+	public boolean shouldRender(RenderScope phase)
 	{
-		return phase == RenderPhase.World && enabled;
+		return phase == RenderScope.Once && enabled;
 	}
 
 	@Override
-	public void render(EntityLivingBase entity, float partialTicks, float x, float y, float z)
-	{
-		renderBowAim();
-	}
-
-	private void renderBowAim()
+	public void render(EntityLivingBase entity, float partialTicks, float rx, float ry, float rz)
 	{
 		Minecraft m = Minecraft.getMinecraft();
 
@@ -106,11 +100,10 @@ public class ArrowGuideOverlay implements IOverlay
 			for (int y = -1; y <= 1; y++)
 				for (int z = -1; z <= 1; z++)
 				{
-					Tuple<Vector3f, RayTraceResult> postuple = getArrowLandPosition(m, velocity, f, f1, f2, x, y, z);
-					RayTraceResult hit = postuple.getSecond();
-					if (hit != null)
+					Tuple<Vector3f, RayTraceResult> postuple = getArrowLandPosition(velocity, f, f1, f2, x, y, z);
+					if (postuple != null)
 					{
-						hits.add(hit.typeOfHit);
+						hits.add(postuple.getSecond().typeOfHit);
 						positions.add(postuple.getFirst());
 					}
 				}
@@ -153,8 +146,22 @@ public class ArrowGuideOverlay implements IOverlay
 		GL11.glPopAttrib();
 	}
 
-	private Tuple<Vector3f, RayTraceResult> getArrowLandPosition(Minecraft m, float velocity, double x, double y, double z, float dx, float dy, float dz)
+	/**
+	 * Simulates an arrow's trajectory for up to 150 (7.5s) ticks to determine it's landing position under the specified conditions
+	 *
+	 * @param velocity The velocity of the arrow
+	 * @param x        The originating x position of the arrow
+	 * @param y        The originating y position of the arrow
+	 * @param z        The originating z position of the arrow
+	 * @param dx       The x displacement of the arrow
+	 * @param dy       The y displacement of the arrow
+	 * @param dz       The z displacement of the arrow
+	 * @return A <code>Tuple</code> of the quick position and the full raytrace result of the arrow
+	 */
+	private Tuple<Vector3f, RayTraceResult> getArrowLandPosition(float velocity, double x, double y, double z, float dx, float dy, float dz)
 	{
+		Minecraft m = Minecraft.getMinecraft();
+
 		x += dx * 0.007499999832361937D;
 		y += dy * 0.007499999832361937D;
 		z += dz * 0.007499999832361937D;
@@ -185,7 +192,7 @@ public class ArrowGuideOverlay implements IOverlay
 			Vec3d vec3d1 = new Vec3d(m.player.posX + pos.x, m.player.posY + pos.y, m.player.posZ + pos.z);
 			Vec3d vec3d = new Vec3d(m.player.posX + pos.x + motionX, m.player.posY + pos.y + motionY, m.player.posZ + pos.z + motionZ);
 
-			Tuple<Entity, RayTraceResult> hit = findEntityOnPath(m.player, m.player.world, vec3d1, vec3d);
+			Tuple<Entity, RayTraceResult> hit = EntityUtil.findEntityOnPath(EntityLivingBase.class, m.player, m.player.world, vec3d1, vec3d);
 			if (hit != null)
 			{
 				fhit = hit.getSecond();
@@ -212,45 +219,11 @@ public class ArrowGuideOverlay implements IOverlay
 			Vector3f.add(pos, new Vector3f((float)motionX, (float)motionY, (float)motionZ), pos);
 		}
 
-		return new Tuple<>(pos, found ? fhit : null);
+		return found ? new Tuple<>(pos, fhit) : null;
 	}
 
 	private Vector3f makeRelativeHitPos(Minecraft m, RayTraceResult fhit)
 	{
 		return new Vector3f((float)(fhit.hitVec.x - m.player.posX), (float)(fhit.hitVec.y - m.player.posY), (float)(fhit.hitVec.z - m.player.posZ));
-	}
-
-	protected Tuple<Entity, RayTraceResult> findEntityOnPath(Entity exclude, World world, Vec3d start, Vec3d end)
-	{
-		Entity entity = null;
-		RayTraceResult hit = null;
-		List<Entity> list = world.getEntitiesWithinAABB(EntityLivingBase.class, new AxisAlignedBB(start.x, start.y, start.z, end.x, end.y, end.z));
-		double d0 = 0D;
-
-		for (Entity entity1 : list)
-		{
-			if (entity1.getEntityId() != exclude.getEntityId())
-			{
-				AxisAlignedBB axisalignedbb = entity1.getEntityBoundingBox();
-				RayTraceResult raytraceresult = axisalignedbb.calculateIntercept(start, end);
-
-				if (raytraceresult != null)
-				{
-					double d1 = start.squareDistanceTo(raytraceresult.hitVec);
-
-					if (d1 < d0 || d0 == 0.0D)
-					{
-						hit = raytraceresult;
-						entity = entity1;
-						d0 = d1;
-					}
-				}
-			}
-		}
-
-		if (entity == null)
-			return null;
-
-		return new Tuple<>(entity, hit);
 	}
 }

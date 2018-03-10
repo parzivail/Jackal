@@ -12,6 +12,9 @@ public class Toast
 {
 	private static Enumerable<Toast> toasts = Enumerable.empty();
 
+	public static int LENGTH_SHORT = 2000;
+	public static int LENGTH_LONG = 5000;
+
 	public static void tick()
 	{
 		long time = System.currentTimeMillis();
@@ -54,7 +57,7 @@ public class Toast
 				remainingFraction = (float)timeLeft / fadeOutTime;
 
 			GL11.glColor4f(1, 1, 1, 1);
-			boolean hasItem = !t.itemStack.isEmpty();
+			boolean hasItem = (t.itemStack != null && !t.itemStack.isEmpty());
 			GL.Translate(0, i == 0 ? 0 : (!hasItem && !hadItem ? fr.FONT_HEIGHT * 1.2f : 17) * prevRemainingFraction, 0);
 
 			GL.PushMatrix();
@@ -82,7 +85,7 @@ public class Toast
 	}
 
 	private final String content;
-	private final ItemStack itemStack;
+	private ItemStack itemStack;
 	private final long endTime;
 
 	public Toast(String content, int time)
@@ -93,7 +96,8 @@ public class Toast
 	public Toast(String content, ItemStack itemStack, int time)
 	{
 		this.content = content;
-		this.itemStack = itemStack.copy();
+		if (itemStack != null)
+			this.itemStack = itemStack.copy();
 		this.endTime = System.currentTimeMillis() + time;
 	}
 
