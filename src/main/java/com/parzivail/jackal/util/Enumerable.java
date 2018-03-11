@@ -1,6 +1,7 @@
 package com.parzivail.jackal.util;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.function.Function;
 
@@ -36,6 +37,20 @@ public class Enumerable<T> extends ArrayList<T>
 	}
 
 	/**
+	 * Creates an Enumerable from another collection of items
+	 *
+	 * @param l   The collection of items
+	 * @param <T> List content type
+	 * @return A new Enumerable
+	 */
+	public static <T> Enumerable<T> from(T[] l)
+	{
+		Enumerable<T> e = new Enumerable<>();
+		e.addAll(Arrays.asList(l));
+		return e;
+	}
+
+	/**
 	 * Creates a new empty enumerable
 	 * @param <T> List content type
 	 * @return A new Enumerable
@@ -43,6 +58,14 @@ public class Enumerable<T> extends ArrayList<T>
 	public static <T> Enumerable<T> empty()
 	{
 		return new Enumerable<>();
+	}
+
+	public Enumerable<T> skip(int amount)
+	{
+		Enumerable<T> result = Enumerable.empty();
+		for (int i = amount; i < size(); i++)
+			result.add(get(i));
+		return result;
 	}
 
 	/**
@@ -53,10 +76,38 @@ public class Enumerable<T> extends ArrayList<T>
 	 */
 	public <R> Enumerable<R> select(Function<T, R> f)
 	{
-		ArrayList<R> r = new ArrayList<>();
+		Enumerable<R> r = new Enumerable<>();
 		for (T t : this)
 			r.add(f.apply(t));
-		return Enumerable.from(r);
+		return r;
+	}
+
+	/**
+	 * Returns the first value that satisfies <code>f</code>
+	 *
+	 * @param f The query
+	 * @return The first value that satisfies <code>f</code>
+	 */
+	public T first(Function<T, Boolean> f)
+	{
+		if (size() == 0)
+			return null;
+		for (T t : this)
+			if (f.apply(t))
+				return t;
+		return null;
+	}
+
+	/**
+	 * Returns the first value
+	 *
+	 * @return The first value
+	 */
+	public T first()
+	{
+		if (size() == 0)
+			return null;
+		return get(0);
 	}
 
 	/**
@@ -67,10 +118,10 @@ public class Enumerable<T> extends ArrayList<T>
 	 */
 	public <R> Enumerable<R> selectMany(Function<T, Collection<R>> f)
 	{
-		ArrayList<R> r = new ArrayList<>();
+		Enumerable<R> r = new Enumerable<>();
 		for (T t : this)
 			r.addAll(f.apply(t));
-		return Enumerable.from(r);
+		return r;
 	}
 
 	/**
@@ -80,11 +131,11 @@ public class Enumerable<T> extends ArrayList<T>
 	 */
 	public Enumerable<T> where(Function<T, Boolean> f)
 	{
-		ArrayList<T> r = new ArrayList<>();
+		Enumerable<T> r = new Enumerable<>();
 		for (T t : this)
 			if (f.apply(t))
 				r.add(t);
-		return Enumerable.from(r);
+		return r;
 	}
 
 	/**
@@ -119,7 +170,7 @@ public class Enumerable<T> extends ArrayList<T>
 	 * @param f The query
 	 * @return The max value of the list
 	 */
-	public <R extends Number> float max(Function<T, Float> f)
+	public float max(Function<T, Float> f)
 	{
 		if (size() == 0)
 			throw new IllegalArgumentException();
@@ -155,7 +206,7 @@ public class Enumerable<T> extends ArrayList<T>
 	public T aggregate(DualFunction<T, T, T> f)
 	{
 		if (size() == 0)
-			throw new IllegalArgumentException();
+			return null;
 		T agg = get(0);
 		for (int i = 1; i < size(); i++)
 			agg = f.apply(agg, get(i));
@@ -178,16 +229,6 @@ public class Enumerable<T> extends ArrayList<T>
 	}
 
 	/**
-	 * Computes the sum of a list of values
-	 *
-	 * @return The sum of the list
-	 */
-	public float sum()
-	{
-		return sum(x -> (float)x);
-	}
-
-	/**
 	 * Computes the average of a list of values
 	 * @param f The query
 	 * @return The average of the list
@@ -197,15 +238,5 @@ public class Enumerable<T> extends ArrayList<T>
 		if (size() == 0)
 			throw new IllegalArgumentException();
 		return sum(f) / size();
-	}
-
-	/**
-	 * Computes the average of a list of values
-	 *
-	 * @return The average of the list
-	 */
-	public float average()
-	{
-		return average(x -> (float)x);
 	}
 }

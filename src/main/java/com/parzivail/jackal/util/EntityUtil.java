@@ -1,6 +1,9 @@
 package com.parzivail.jackal.util;
 
+import net.minecraft.client.Minecraft;
 import net.minecraft.entity.Entity;
+import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.util.EntitySelectors;
 import net.minecraft.util.Tuple;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.RayTraceResult;
@@ -8,6 +11,7 @@ import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.World;
 
 import java.util.List;
+import java.util.UUID;
 
 public class EntityUtil
 {
@@ -43,5 +47,23 @@ public class EntityUtil
 			return null;
 
 		return new Tuple<>(entity, hit);
+	}
+
+	public static UUID getPlayerUUID(String s)
+	{
+		EntityPlayer foundPlayer = Minecraft.getMinecraft().player.world.getPlayerEntityByName(s);
+		return getPlayerUUID(foundPlayer);
+	}
+
+	public static UUID getPlayerUUID(EntityPlayer p)
+	{
+		if (p == null)
+			return null;
+		return EntityPlayer.getUUID(p.getGameProfile());
+	}
+
+	public static Enumerable<String> getOnlinePlayerNames()
+	{
+		return Enumerable.from(Minecraft.getMinecraft().player.world.getPlayers(EntityPlayer.class, EntitySelectors.NOT_SPECTATING)).select(EntityPlayer::getName);
 	}
 }

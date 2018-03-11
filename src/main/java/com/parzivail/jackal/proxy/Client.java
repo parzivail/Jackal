@@ -1,7 +1,9 @@
 package com.parzivail.jackal.proxy;
 
 import com.parzivail.jackal.Resources;
+import com.parzivail.jackal.command.RadarEditCommand;
 import com.parzivail.jackal.overlay.ArrowGuideModule;
+import com.parzivail.jackal.overlay.PlayerRadarModule;
 import com.parzivail.jackal.overlay.PsychicModule;
 import com.parzivail.jackal.overlay.WallhackModule;
 import com.parzivail.jackal.util.Enumerable;
@@ -10,6 +12,7 @@ import com.parzivail.jackal.util.overlay.IJackalModule;
 import com.parzivail.jackal.util.overlay.RenderScope;
 import net.minecraft.client.settings.KeyBinding;
 import net.minecraft.entity.EntityLivingBase;
+import net.minecraftforge.client.ClientCommandHandler;
 import net.minecraftforge.fml.client.registry.ClientRegistry;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
@@ -38,7 +41,7 @@ public class Client extends Common
 
 	public static void showOverlayToggleToast(IJackalModule overlay)
 	{
-		new Toast(overlay.getName() + " " + (overlay.isEnabled() ? "enabled" : "disabled"), overlay.getIcon().getDefaultInstance(), Toast.LENGTH_SHORT).show();
+		new Toast(String.format("%s %s", overlay.getName(), overlay.isEnabled() ? "enabled" : "disabled"), overlay.getIcon().getDefaultInstance(), Toast.LENGTH_SHORT).show();
 	}
 
 	@Override
@@ -52,6 +55,12 @@ public class Client extends Common
 		overlays.add(new ArrowGuideModule());
 		overlays.add(new WallhackModule());
 		overlays.add(new PsychicModule());
+		overlays.add(new PlayerRadarModule());
+	}
+
+	public static IJackalModule getModule(Class<? extends IJackalModule> clazz)
+	{
+		return overlays.first(clazz::isInstance);
 	}
 
 	@Override
@@ -60,6 +69,8 @@ public class Client extends Common
 		keyDebug = registerKeybind("keyDebug", Keyboard.KEY_N);
 
 		keyZoom = registerKeybind("zoom", Keyboard.KEY_Z);
+
+		ClientCommandHandler.instance.registerCommand(new RadarEditCommand());
 	}
 
 	public static KeyBinding registerKeybind(String keyName, int keyCode)

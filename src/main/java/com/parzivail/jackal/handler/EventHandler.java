@@ -22,7 +22,7 @@ public class EventHandler
 
 	@SubscribeEvent
 	@SideOnly(Side.CLIENT)
-	public void onRender(FOVUpdateEvent event)
+	public void on(FOVUpdateEvent event)
 	{
 		if (Client.keyZoom.isKeyDown())
 			event.setNewfov(0.1f);
@@ -30,31 +30,32 @@ public class EventHandler
 
 	@SubscribeEvent
 	@SideOnly(Side.CLIENT)
-	public void onInput(InputEvent.KeyInputEvent event)
+	public void on(InputEvent.KeyInputEvent event)
 	{
 		Client.delegateKeyInputToOverlays();
 	}
 
 	@SubscribeEvent
 	@SideOnly(Side.CLIENT)
-	public void onTick(TickEvent.ClientTickEvent event)
+	public void on(TickEvent.ClientTickEvent event)
 	{
 		Toast.tick();
 	}
 
 	@SubscribeEvent
 	@SideOnly(Side.CLIENT)
-	public void onRender(RenderGameOverlayEvent event)
+	public void on(RenderGameOverlayEvent event)
 	{
 		if (event.getType() != RenderGameOverlayEvent.ElementType.TEXT)
 			return;
 
+		Client.renderOverlays(Minecraft.getMinecraft().player, event.getPartialTicks(), RenderScope.GUI, 0, 0, 0);
 		Toast.render();
 	}
 
 	@SubscribeEvent
 	@SideOnly(Side.CLIENT)
-	public void onRender(RenderPlayerEvent.Post event)
+	public void on(RenderPlayerEvent.Post event)
 	{
 		if (event.getEntity() != null)
 			Client.renderOverlays(event.getEntityLiving(), event.getPartialRenderTick(), RenderScope.EachEntity, (float)event.getX(), (float)event.getY(), (float)event.getZ());
@@ -62,7 +63,7 @@ public class EventHandler
 
 	@SubscribeEvent
 	@SideOnly(Side.CLIENT)
-	public void onRender(RenderLivingEvent.Post event)
+	public void on(RenderLivingEvent.Post event)
 	{
 		if (event.getEntity() != null)
 			Client.renderOverlays(event.getEntity(), event.getPartialRenderTick(), RenderScope.EachEntity, (float)event.getX(), (float)event.getY(), (float)event.getZ());

@@ -92,6 +92,7 @@ public class PsychicModule implements IJackalModule
 			{
 				link = hit.getFirst();
 				Client.showOverlayToggleToast(this);
+				new Toast(String.format("Spectating %s", link.getDisplayName().getFormattedText()), getIcon().getDefaultInstance(), Toast.LENGTH_SHORT).show();
 			}
 			else
 			{

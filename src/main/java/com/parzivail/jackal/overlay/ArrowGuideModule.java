@@ -86,11 +86,14 @@ public class ArrowGuideModule implements IJackalModule
 			return;
 
 		float pull = m.player.getItemInUseMaxCount();
+
+		if (pull == 0)
+			return;
+
 		float velocity = ItemBow.getArrowVelocity((int)pull);
 		velocity *= 3;
 
-		Enumerable<Vector3f> positions = Enumerable.empty();
-		Enumerable<RayTraceResult.Type> hits = Enumerable.empty();
+		Enumerable<Tuple<Vector3f, RayTraceResult>> hits = Enumerable.empty();
 
 		float f = -MathHelper.sin(m.player.rotationYaw * 0.017453292F) * MathHelper.cos(m.player.rotationPitch * 0.017453292F);
 		float f1 = -MathHelper.sin(m.player.rotationPitch * 0.017453292F);
@@ -102,10 +105,7 @@ public class ArrowGuideModule implements IJackalModule
 				{
 					Tuple<Vector3f, RayTraceResult> postuple = getArrowLandPosition(velocity, f, f1, f2, x, y, z);
 					if (postuple != null)
-					{
-						hits.add(postuple.getSecond().typeOfHit);
-						positions.add(postuple.getFirst());
-					}
+						hits.add(postuple);
 				}
 
 		GL11.glPushAttrib(GL11.GL_ENABLE_BIT);
@@ -122,21 +122,25 @@ public class ArrowGuideModule implements IJackalModule
 		GL11.glColor4f(0, 0, 0, 1);
 
 		GL.Begin(PrimitiveType.Points);
-		for (Vector3f hitPt : positions)
-			GL.Vertex3(hitPt);
+		for (Tuple<Vector3f, RayTraceResult> hitPt : hits)
+			GL.Vertex3(hitPt.getFirst());
 		GL.End();
 
 		GL11.glPointSize(3);
-		if (hits.all(h -> h == RayTraceResult.Type.ENTITY))
+
+		boolean all = hits.all(h -> h.getSecond().typeOfHit == RayTraceResult.Type.ENTITY);
+		if (all)
 			GL11.glColor4f(1, 0, 0, 1);
-		else if (hits.any(h -> h == RayTraceResult.Type.ENTITY))
-			GL11.glColor4f(1, 1, 0, 1);
-		else
-			GL11.glColor4f(1, 1, 1, 1);
 
 		GL.Begin(PrimitiveType.Points);
-		for (Vector3f hitPt : positions)
-			GL.Vertex3(hitPt);
+		for (Tuple<Vector3f, RayTraceResult> hitPt : hits)
+		{
+			if (!all && hitPt.getSecond().typeOfHit == RayTraceResult.Type.ENTITY)
+				GL11.glColor4f(1, 1, 0, 1);
+			else if (!all)
+				GL11.glColor4f(1, 1, 1, 1);
+			GL.Vertex3(hitPt.getFirst());
+		}
 		GL.End();
 
 		GL.PopMatrix();
@@ -162,9 +166,9 @@ public class ArrowGuideModule implements IJackalModule
 	{
 		Minecraft m = Minecraft.getMinecraft();
 
-		x += dx * 0.007499999832361937D;
-		y += dy * 0.007499999832361937D;
-		z += dz * 0.007499999832361937D;
+		x += dx * 0.01;
+		y += dy * 0.01;
+		z += dz * 0.01;
 
 		x *= velocity;
 		y *= velocity;

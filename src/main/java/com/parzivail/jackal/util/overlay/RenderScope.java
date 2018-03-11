@@ -5,5 +5,5 @@ package com.parzivail.jackal.util.overlay;
  */
 public enum RenderScope
 {
-	Once, EachEntity
+	GUI, Once, EachEntity
 }
