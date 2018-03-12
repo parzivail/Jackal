@@ -1,5 +1,7 @@
 package com.parzivail.jackal.util;
 
+import com.parzivail.jackal.util.gltk.GL;
+import com.parzivail.jackal.util.gltk.PrimitiveType;
 import net.minecraft.client.Minecraft;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.EntityPlayer;
@@ -65,5 +67,43 @@ public class EntityUtil
 	public static Enumerable<String> getOnlinePlayerNames()
 	{
 		return Enumerable.from(Minecraft.getMinecraft().player.world.getPlayers(EntityPlayer.class, EntitySelectors.NOT_SPECTATING)).select(EntityPlayer::getName);
+	}
+
+	public static void renderAABB(AxisAlignedBB aabb)
+	{
+		if (aabb == null)
+			return;
+
+		GL.Begin(PrimitiveType.Quads);
+		GL.Vertex3(aabb.minX, aabb.maxY, aabb.minZ);
+		GL.Vertex3(aabb.maxX, aabb.maxY, aabb.minZ);
+		GL.Vertex3(aabb.maxX, aabb.minY, aabb.minZ);
+		GL.Vertex3(aabb.minX, aabb.minY, aabb.minZ);
+
+		GL.Vertex3(aabb.minX, aabb.minY, aabb.maxZ);
+		GL.Vertex3(aabb.maxX, aabb.minY, aabb.maxZ);
+		GL.Vertex3(aabb.maxX, aabb.maxY, aabb.maxZ);
+		GL.Vertex3(aabb.minX, aabb.maxY, aabb.maxZ);
+
+		GL.Vertex3(aabb.minX, aabb.minY, aabb.minZ);
+		GL.Vertex3(aabb.maxX, aabb.minY, aabb.minZ);
+		GL.Vertex3(aabb.maxX, aabb.minY, aabb.maxZ);
+		GL.Vertex3(aabb.minX, aabb.minY, aabb.maxZ);
+
+		GL.Vertex3(aabb.minX, aabb.maxY, aabb.maxZ);
+		GL.Vertex3(aabb.maxX, aabb.maxY, aabb.maxZ);
+		GL.Vertex3(aabb.maxX, aabb.maxY, aabb.minZ);
+		GL.Vertex3(aabb.minX, aabb.maxY, aabb.minZ);
+
+		GL.Vertex3(aabb.minX, aabb.minY, aabb.maxZ);
+		GL.Vertex3(aabb.minX, aabb.maxY, aabb.maxZ);
+		GL.Vertex3(aabb.minX, aabb.maxY, aabb.minZ);
+		GL.Vertex3(aabb.minX, aabb.minY, aabb.minZ);
+
+		GL.Vertex3(aabb.maxX, aabb.minY, aabb.minZ);
+		GL.Vertex3(aabb.maxX, aabb.maxY, aabb.minZ);
+		GL.Vertex3(aabb.maxX, aabb.maxY, aabb.maxZ);
+		GL.Vertex3(aabb.maxX, aabb.minY, aabb.maxZ);
+		GL.End();
 	}
 }

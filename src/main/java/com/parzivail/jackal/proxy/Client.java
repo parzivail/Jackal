@@ -2,16 +2,16 @@ package com.parzivail.jackal.proxy;
 
 import com.parzivail.jackal.Resources;
 import com.parzivail.jackal.command.RadarEditCommand;
-import com.parzivail.jackal.overlay.ArrowGuideModule;
-import com.parzivail.jackal.overlay.PlayerRadarModule;
-import com.parzivail.jackal.overlay.PsychicModule;
-import com.parzivail.jackal.overlay.WallhackModule;
+import com.parzivail.jackal.overlay.*;
+import com.parzivail.jackal.render.RenderChestESP;
 import com.parzivail.jackal.util.Enumerable;
 import com.parzivail.jackal.util.Toast;
 import com.parzivail.jackal.util.overlay.IJackalModule;
 import com.parzivail.jackal.util.overlay.RenderScope;
+import net.minecraft.client.renderer.tileentity.TileEntityRendererDispatcher;
 import net.minecraft.client.settings.KeyBinding;
 import net.minecraft.entity.EntityLivingBase;
+import net.minecraft.tileentity.TileEntityChest;
 import net.minecraftforge.client.ClientCommandHandler;
 import net.minecraftforge.fml.client.registry.ClientRegistry;
 import net.minecraftforge.fml.relauncher.Side;
@@ -52,10 +52,9 @@ public class Client extends Common
 	@Override
 	public void init()
 	{
-		overlays.add(new ArrowGuideModule());
-		overlays.add(new WallhackModule());
-		overlays.add(new PsychicModule());
-		overlays.add(new PlayerRadarModule());
+		RenderChestESP rcesp = new RenderChestESP();
+		rcesp.setRendererDispatcher(TileEntityRendererDispatcher.instance);
+		TileEntityRendererDispatcher.instance.renderers.replace(TileEntityChest.class, rcesp);
 	}
 
 	public static IJackalModule getModule(Class<? extends IJackalModule> clazz)
@@ -67,8 +66,13 @@ public class Client extends Common
 	public void postInit()
 	{
 		keyDebug = registerKeybind("keyDebug", Keyboard.KEY_N);
-
 		keyZoom = registerKeybind("zoom", Keyboard.KEY_Z);
+
+		overlays.add(new ArrowGuideModule());
+		overlays.add(new WallhackModule());
+		overlays.add(new PsychicModule());
+		overlays.add(new PlayerRadarModule());
+		overlays.add(new ChestEspModule());
 
 		ClientCommandHandler.instance.registerCommand(new RadarEditCommand());
 	}

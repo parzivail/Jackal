@@ -1,10 +1,10 @@
 package com.parzivail.jackal.overlay;
 
 import com.parzivail.jackal.proxy.Client;
+import com.parzivail.jackal.util.EntityUtil;
 import com.parzivail.jackal.util.Fx;
 import com.parzivail.jackal.util.gltk.EnableCap;
 import com.parzivail.jackal.util.gltk.GL;
-import com.parzivail.jackal.util.gltk.PrimitiveType;
 import com.parzivail.jackal.util.overlay.IJackalModule;
 import com.parzivail.jackal.util.overlay.RenderScope;
 import net.minecraft.client.Minecraft;
@@ -14,7 +14,6 @@ import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.init.Items;
 import net.minecraft.item.Item;
-import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
 import org.lwjgl.input.Keyboard;
@@ -101,14 +100,14 @@ public class WallhackModule implements IJackalModule
 		 */
 		GL11.glLineWidth(4);
 		GL11.glColor4f(0, 0, 0, 1);
-		renderAABB(e.getEntityBoundingBox());
+		EntityUtil.renderAABB(e.getEntityBoundingBox());
 
 		GL11.glLineWidth(2);
 		if (e instanceof EntityPlayer)
 			GL11.glColor4f(0, 1, 0, 1);
 		else
 			GL11.glColor4f(0, 0, 1, 1);
-		renderAABB(e.getEntityBoundingBox());
+		EntityUtil.renderAABB(e.getEntityBoundingBox());
 
 		GL11.glPolygonMode(GL11.GL_FRONT_AND_BACK, GL11.GL_FILL);
 
@@ -147,43 +146,5 @@ public class WallhackModule implements IJackalModule
 		GL11.glPopAttrib();
 		GL11.glPopAttrib();
 		m.entityRenderer.enableLightmap();
-	}
-
-	private static void renderAABB(AxisAlignedBB aabb)
-	{
-		if (aabb == null)
-			return;
-
-		GL.Begin(PrimitiveType.Quads);
-		GL.Vertex3(aabb.minX, aabb.maxY, aabb.minZ);
-		GL.Vertex3(aabb.maxX, aabb.maxY, aabb.minZ);
-		GL.Vertex3(aabb.maxX, aabb.minY, aabb.minZ);
-		GL.Vertex3(aabb.minX, aabb.minY, aabb.minZ);
-
-		GL.Vertex3(aabb.minX, aabb.minY, aabb.maxZ);
-		GL.Vertex3(aabb.maxX, aabb.minY, aabb.maxZ);
-		GL.Vertex3(aabb.maxX, aabb.maxY, aabb.maxZ);
-		GL.Vertex3(aabb.minX, aabb.maxY, aabb.maxZ);
-
-		GL.Vertex3(aabb.minX, aabb.minY, aabb.minZ);
-		GL.Vertex3(aabb.maxX, aabb.minY, aabb.minZ);
-		GL.Vertex3(aabb.maxX, aabb.minY, aabb.maxZ);
-		GL.Vertex3(aabb.minX, aabb.minY, aabb.maxZ);
-
-		GL.Vertex3(aabb.minX, aabb.maxY, aabb.maxZ);
-		GL.Vertex3(aabb.maxX, aabb.maxY, aabb.maxZ);
-		GL.Vertex3(aabb.maxX, aabb.maxY, aabb.minZ);
-		GL.Vertex3(aabb.minX, aabb.maxY, aabb.minZ);
-
-		GL.Vertex3(aabb.minX, aabb.minY, aabb.maxZ);
-		GL.Vertex3(aabb.minX, aabb.maxY, aabb.maxZ);
-		GL.Vertex3(aabb.minX, aabb.maxY, aabb.minZ);
-		GL.Vertex3(aabb.minX, aabb.minY, aabb.minZ);
-
-		GL.Vertex3(aabb.maxX, aabb.minY, aabb.minZ);
-		GL.Vertex3(aabb.maxX, aabb.maxY, aabb.minZ);
-		GL.Vertex3(aabb.maxX, aabb.maxY, aabb.maxZ);
-		GL.Vertex3(aabb.maxX, aabb.minY, aabb.maxZ);
-		GL.End();
 	}
 }
