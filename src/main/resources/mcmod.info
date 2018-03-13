@@ -1,14 +1,14 @@
 [
 {
-  "modid": "examplemod",
-  "name": "Example Mod",
-  "description": "Example placeholder mod.",
+  "modid": "jackal",
+  "name": "Jackal",
+  "description": "Jackal: seeing is believing.",
   "version": "${version}",
   "mcversion": "${mcversion}",
-  "url": "",
+  "url": "https://github.com/parzivail/Jackal",
   "updateUrl": "",
-  "authorList": ["ExampleDude"],
-  "credits": "The Forge and FML guys, for making this example",
+  "authorList": ["parzivail"],
+  "credits": "",
   "logoFile": "",
   "screenshots": [],
   "dependencies": []

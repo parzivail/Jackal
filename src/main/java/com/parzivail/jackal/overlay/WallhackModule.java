@@ -3,6 +3,7 @@ package com.parzivail.jackal.overlay;
 import com.parzivail.jackal.proxy.Client;
 import com.parzivail.jackal.util.EntityUtil;
 import com.parzivail.jackal.util.Fx;
+import com.parzivail.jackal.util.Toast;
 import com.parzivail.jackal.util.gltk.EnableCap;
 import com.parzivail.jackal.util.gltk.GL;
 import com.parzivail.jackal.util.overlay.IJackalModule;
@@ -28,6 +29,20 @@ public class WallhackModule implements IJackalModule
 	public static KeyBinding key;
 
 	private static boolean enabled;
+
+	private static WallhackMode[] modes = new WallhackMode[] {
+			WallhackMode.Default,
+			WallhackMode.Players,
+			WallhackMode.Other
+	};
+	private static int modeIndex = 0;
+
+	private static WallhackMotionMode[] motionModes = new WallhackMotionMode[] {
+			WallhackMotionMode.Default,
+			WallhackMotionMode.HighlightMoving,
+			WallhackMotionMode.OnlyMoving
+	};
+	private static int motionModeIndex = 0;
 
 	public WallhackModule()
 	{
@@ -61,8 +76,26 @@ public class WallhackModule implements IJackalModule
 	@Override
 	public void handleKeyInput()
 	{
-		enabled = !enabled;
-		Client.showOverlayToggleToast(this);
+		if (Keyboard.isKeyDown(Keyboard.KEY_LMENU))
+		{
+			if (Keyboard.isKeyDown(Keyboard.KEY_RMENU))
+			{
+				motionModeIndex++;
+				motionModeIndex %= motionModes.length;
+				new Toast("Motion Mode: " + motionModes[motionModeIndex].modeName, getIcon().getDefaultInstance(), Toast.LENGTH_SHORT).show();
+			}
+			else
+			{
+				modeIndex++;
+				modeIndex %= modes.length;
+				new Toast("Mode: " + modes[modeIndex].modeName, getIcon().getDefaultInstance(), Toast.LENGTH_SHORT).show();
+			}
+		}
+		else
+		{
+			enabled = !enabled;
+			Client.showOverlayToggleToast(this);
+		}
 	}
 
 	@Override
@@ -74,7 +107,17 @@ public class WallhackModule implements IJackalModule
 	@Override
 	public void render(EntityLivingBase e, float partialTicks, float x, float y, float z)
 	{
+		if (modes[modeIndex] == WallhackMode.Players && !(e instanceof EntityPlayer))
+			return;
+		if (modes[modeIndex] == WallhackMode.Other && e instanceof EntityPlayer)
+			return;
+
 		Minecraft m = Minecraft.getMinecraft();
+
+		boolean anyMovement = e.posX != e.prevPosX || e.posY != e.prevPosY || e.posZ != e.prevPosZ;
+
+		if ((motionModes[motionModeIndex] == WallhackMotionMode.OnlyMoving && !anyMovement))
+			return;
 
 		/*
 			Setup
@@ -102,11 +145,13 @@ public class WallhackModule implements IJackalModule
 		GL11.glColor4f(0, 0, 0, 1);
 		EntityUtil.renderAABB(e.getEntityBoundingBox());
 
+		boolean isMoving = motionModes[motionModeIndex] != WallhackMotionMode.OnlyMoving && ((motionModes[motionModeIndex] == WallhackMotionMode.HighlightMoving && anyMovement));
+
 		GL11.glLineWidth(2);
 		if (e instanceof EntityPlayer)
-			GL11.glColor4f(0, 1, 0, 1);
+			GL11.glColor4f(0, 1, isMoving ? 1 : 0, 1);
 		else
-			GL11.glColor4f(0, 0, 1, 1);
+			GL11.glColor4f(isMoving ? 1 : 0, 0, 1, 1);
 		EntityUtil.renderAABB(e.getEntityBoundingBox());
 
 		GL11.glPolygonMode(GL11.GL_FRONT_AND_BACK, GL11.GL_FILL);
@@ -146,5 +191,29 @@ public class WallhackModule implements IJackalModule
 		GL11.glPopAttrib();
 		GL11.glPopAttrib();
 		m.entityRenderer.enableLightmap();
+	}
+
+	public enum WallhackMode
+	{
+		Default("All"), Players("Players"), Other("Non-players");
+
+		public final String modeName;
+
+		WallhackMode(String name)
+		{
+			this.modeName = name;
+		}
+	}
+
+	public enum WallhackMotionMode
+	{
+		Default("All"), HighlightMoving("Highlight moving"), OnlyMoving("Only moving");
+
+		public final String modeName;
+
+		WallhackMotionMode(String name)
+		{
+			this.modeName = name;
+		}
 	}
 }
